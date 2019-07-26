@@ -36,6 +36,7 @@ type Resolver struct {
 	ipv6            bool
 	mapping         bool
 	fakeip          bool
+	nxdomain        bool
 	pool            *fakeip.Pool
 	main            []dnsClient
 	fallback        []dnsClient
@@ -163,6 +164,10 @@ func (r *Resolver) IsFakeIP(ip net.IP) bool {
 	return false
 }
 
+func (r *Resolver) ShouldRespectNXDomain() bool {
+	return r.nxdomain
+}
+
 func (r *Resolver) batchExchange(clients []dnsClient, m *D.Msg) (msg *D.Msg, err error) {
 	fast, ctx := picker.WithTimeout(context.Background(), time.Second*5)
 	for _, client := range clients {
@@ -275,12 +280,13 @@ type FallbackFilter struct {
 }
 
 type Config struct {
-	Main, Fallback []NameServer
-	Default        []NameServer
-	IPv6           bool
-	EnhancedMode   EnhancedMode
-	FallbackFilter FallbackFilter
-	Pool           *fakeip.Pool
+	Main, Fallback  []NameServer
+	Default         []NameServer
+	IPv6            bool
+	EnhancedMode    EnhancedMode
+	RespectNXDomain bool
+	FallbackFilter  FallbackFilter
+	Pool            *fakeip.Pool
 }
 
 func New(config Config) *Resolver {
@@ -290,12 +296,13 @@ func New(config Config) *Resolver {
 	}
 
 	r := &Resolver{
-		ipv6:    config.IPv6,
-		main:    transform(config.Main, defaultResolver),
-		cache:   cache.New(time.Second * 60),
-		mapping: config.EnhancedMode == MAPPING,
-		fakeip:  config.EnhancedMode == FAKEIP,
-		pool:    config.Pool,
+		ipv6:     config.IPv6,
+		main:     transform(config.Main, defaultResolver),
+		cache:    cache.New(time.Second * 60),
+		mapping:  config.EnhancedMode == MAPPING,
+		fakeip:   config.EnhancedMode == FAKEIP,
+		nxdomain: config.RespectNXDomain,
+		pool:     config.Pool,
 	}
 
 	if len(config.Fallback) != 0 {

@@ -130,11 +130,12 @@ func updateDNS(c *config.DNS) {
 		return
 	}
 	r := dns.New(dns.Config{
-		Main:         c.NameServer,
-		Fallback:     c.Fallback,
-		IPv6:         c.IPv6,
-		EnhancedMode: c.EnhancedMode,
-		Pool:         c.FakeIPRange,
+		Main:            c.NameServer,
+		Fallback:        c.Fallback,
+		IPv6:            c.IPv6,
+		EnhancedMode:    c.EnhancedMode,
+		RespectNXDomain: c.RespectNXDomain,
+		Pool:            c.FakeIPRange,
 		FallbackFilter: dns.FallbackFilter{
 			GeoIP:  c.FallbackFilter.GeoIP,
 			IPCIDR: c.FallbackFilter.IPCIDR,

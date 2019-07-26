@@ -20,7 +20,7 @@ import (
 	R "github.com/Dreamacro/clash/rules"
 	T "github.com/Dreamacro/clash/tunnel"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // General config
@@ -47,6 +47,7 @@ type DNS struct {
 	FallbackFilter    FallbackFilter   `yaml:"fallback-filter"`
 	Listen            string           `yaml:"listen"`
 	EnhancedMode      dns.EnhancedMode `yaml:"enhanced-mode"`
+	RespectNXDomain   bool             `yaml:"respect-nxdomain"`
 	DefaultNameserver []dns.NameServer `yaml:"default-nameserver"`
 	FakeIPRange       *fakeip.Pool
 }
@@ -83,6 +84,7 @@ type RawDNS struct {
 	FallbackFilter    RawFallbackFilter `yaml:"fallback-filter"`
 	Listen            string            `yaml:"listen"`
 	EnhancedMode      dns.EnhancedMode  `yaml:"enhanced-mode"`
+	RespectNXDomain   bool              `yaml:"respect-nxdomain"`
 	FakeIPRange       string            `yaml:"fake-ip-range"`
 	FakeIPFilter      []string          `yaml:"fake-ip-filter"`
 	DefaultNameserver []string          `yaml:"default-nameserver"`
@@ -141,8 +143,9 @@ func UnmarshalRawConfig(buf []byte) (*RawConfig, error) {
 			IgnoreResolveFail: true,
 		},
 		DNS: RawDNS{
-			Enable:      false,
-			FakeIPRange: "198.18.0.1/16",
+			Enable:          false,
+			FakeIPRange:     "198.18.0.1/16",
+			RespectNXDomain: false,
 			FallbackFilter: RawFallbackFilter{
 				GeoIP:  true,
 				IPCIDR: []string{},
@@ -525,10 +528,11 @@ func parseDNS(cfg RawDNS) (*DNS, error) {
 	}
 
 	dnsCfg := &DNS{
-		Enable:       cfg.Enable,
-		Listen:       cfg.Listen,
-		IPv6:         cfg.IPv6,
-		EnhancedMode: cfg.EnhancedMode,
+		Enable:          cfg.Enable,
+		Listen:          cfg.Listen,
+		IPv6:            cfg.IPv6,
+		EnhancedMode:    cfg.EnhancedMode,
+		RespectNXDomain: cfg.RespectNXDomain,
 		FallbackFilter: FallbackFilter{
 			IPCIDR: []*net.IPNet{},
 		},
