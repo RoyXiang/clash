@@ -168,7 +168,11 @@ func (r *Resolver) batchExchange(clients []dnsClient, m *D.Msg) (msg *D.Msg, err
 	for _, client := range clients {
 		r := client
 		fast.Go(func() (interface{}, error) {
-			return r.ExchangeContext(ctx, m)
+			msg, err := r.ExchangeContext(ctx, m)
+			if err != nil || msg.Rcode == D.RcodeServerFailure {
+				return nil, errors.New("resolve error")
+			}
+			return msg, nil
 		})
 	}
 
